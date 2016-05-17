@@ -44,6 +44,65 @@
         </aside>
       </div>
     </div>
+    
+    import requests
+import optparse
+from bs4 import BeautifulSoup
+
+parser = optparse.OptionParser()
+parser.add_option('-i', '--image', help='Input a link to image', dest='image', type=str, default=None)
+(opts, args) = parser.parse_args()
+
+url = 'https://tineye.com/'
+search = 'search/'
+img_url = opts.image
+page_num = 1
+page_num_1 = '?page=%s&sort=score&order=desc' % page_num
+
+
+data = {'url': '%s' % img_url}
+
+r = requests.post(url + search, data=data)
+full_url = (r.url)
+
+# identifier[4] is the identifying string
+identifier = full_url.split('/')
+
+r = requests.get(full_url)
+soup = BeautifulSoup(r.content)
+
+next_tag = soup.find(attrs={'class': 'next'})
+last_page = next_tag.previous_element
+last_page = int(last_page)
+last_page = last_page + 1
+
+try:
+    while page_num < last_page:
+        page_num_1 = '?page=%s&sort=score&order=desc' % page_num
+        r = requests.get(url + search + identifier[4] + page_num_1)
+        soup = BeautifulSoup(r.content)
+        link = soup.find_all(attrs={'class': 'search-results-location'})
+
+        for location in link:
+            try:
+                find_url = location.find('a')['href']
+                print find_url
+            except:
+                pass
+        page_num = page_num + 1
+
+except:
+    r = requests.get(full_url)
+    soup = BeautifulSoup(r.content)
+
+    link = soup.find_all(attrs={'class': 'search-results-location'})
+
+    for location in link:
+        try:
+            find_url = location.find('a')['href']
+            print find_url
+        except:
+            pass
 
   
   </body>
